@@ -35,6 +35,7 @@ export const Matrix = () => {
   const clock = useClockValue();
   const { width, height } = useWindowDimensions();
   const symbol = { width: width / COLS, height: height / ROWS };
+  console.log(require("./matrix-code-nfi.otf"));
   const font = useFont(require("./matrix-code-nfi.otf"), symbol.height);
   if (font === null) {
     return null;

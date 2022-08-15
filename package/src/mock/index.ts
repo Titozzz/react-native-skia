@@ -45,8 +45,6 @@ export const Mock: typeof SkiaExports &
   // 1. Skia API. BaseSkia contains the enums, and functions like isPaint etc
   Skia,
   ...BaseSkia,
-  // 2. Hooks
-  useDataCollection: Noop,
   useRawData: Noop,
   useData: Noop,
   useFont: Noop,

@@ -3,7 +3,6 @@ import React from "react";
 import { processResult } from "../../__tests__/setup";
 import { Fill } from "../components";
 import * as SkiaRenderer from "../index";
-import type { SkData } from "../../skia/types/Data/Data";
 
 import { importSkia, mountCanvas } from "./setup";
 
@@ -39,21 +38,6 @@ const CheckImage = ({}: EmptyProps) => {
   return <Fill color="green" />;
 };
 
-const CheckDataCollection = ({}: EmptyProps) => {
-  const { useDataCollection, Skia } = importSkia();
-  const font = useDataCollection(
-    [
-      "skia/__tests__/assets/Roboto-Medium.ttf",
-      "skia/__tests__/assets/Roboto-Medium.ttf",
-    ],
-    (data: SkData) => Skia.Typeface.MakeFreeTypeFaceFromData(data)
-  );
-  if (!font) {
-    return <Fill color="red" />;
-  }
-  return <Fill color="green" />;
-};
-
 describe("Data Loading", () => {
   it("Loads renderer without Skia", async () => {
     expect(SkiaRenderer).toBeDefined();
@@ -78,15 +62,6 @@ describe("Data Loading", () => {
 
   it("Should load an image", async () => {
     const { surface, draw } = mountCanvas(<CheckImage />);
-    draw();
-    processResult(surface, "snapshots/font/red.png");
-    await wait(500);
-    draw();
-    processResult(surface, "snapshots/font/green.png");
-  });
-
-  it("Should load many font files", async () => {
-    const { surface, draw } = mountCanvas(<CheckDataCollection />);
     draw();
     processResult(surface, "snapshots/font/red.png");
     await wait(500);
