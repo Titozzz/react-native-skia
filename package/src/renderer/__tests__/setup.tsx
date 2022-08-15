@@ -13,9 +13,7 @@ import type { DrawingContext } from "../DrawingContext";
 import { CanvasProvider } from "../useCanvas";
 import { ValueApi } from "../../values/web";
 import { LoadSkiaWeb } from "../../web/LoadSkiaWeb";
-import type * as SkiaExports from "../../skia";
-
-export let font: SkiaExports.SkFont;
+import type * as SkiaExports from "../..";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).fetch = jest.fn((uri: string) =>
@@ -25,28 +23,45 @@ export let font: SkiaExports.SkFont;
   })
 );
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface EmptyProps {}
+
 jest.mock("react-native", () => ({
   Platform: { OS: "web" },
   Image: {
     resolveAssetSource: jest.fn,
   },
+  requireNativeComponent: jest.fn(),
 }));
 
-export const importSkia = (): typeof SkiaExports => require("../../skia");
+export const loadImage = (uri: string) => {
+  const image = global.SkiaApi.Image.MakeImageFromEncoded(
+    global.SkiaApi.Data.fromBytes(
+      fs.readFileSync(path.resolve(__dirname, `../../${uri}`))
+    )
+  );
+  expect(image).toBeTruthy();
+  return image!;
+};
+
+export const loadFont = (uri: string, size = fontSize) => {
+  const tf = global.SkiaApi.Typeface.MakeFreeTypeFaceFromData(
+    global.SkiaApi.Data.fromBytes(
+      fs.readFileSync(path.resolve(__dirname, `../../${uri}`))
+    )
+  );
+  expect(tf).toBeTruthy();
+  const font = global.SkiaApi.Font(tf!, size);
+  expect(font).toBeTruthy();
+  return font!;
+};
+
+export const importSkia = (): typeof SkiaExports => require("../..");
 
 beforeAll(async () => {
   await LoadSkiaWeb();
   const Skia = JsiSkApi(global.CanvasKit);
   global.SkiaApi = Skia;
-  const data = Skia.Data.fromBytes(
-    fs.readFileSync(
-      path.resolve(__dirname, "../../skia/__tests__/assets/Roboto-Medium.ttf")
-    )
-  );
-  const tf = Skia.Typeface.MakeFreeTypeFaceFromData(data)!;
-  expect(tf).toBeTruthy();
-  font = Skia.Font(tf, fontSize);
-  expect(font).toBeTruthy();
 });
 
 const pixelDensity = 3;
