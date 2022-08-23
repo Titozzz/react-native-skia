@@ -6,7 +6,6 @@ import type { AnimatedProps } from "../processors/Animations/Animations";
 import { materialize } from "../processors/Animations/Animations";
 import { isPaint } from "../../skia/types";
 import type { DependencyManager } from "../DependencyManager";
-import { processPaint } from "../processors";
 
 import { Node } from "./Node";
 
@@ -52,13 +51,7 @@ export class DrawingNode<P> extends Node<P> {
       this.onDraw(ctx, drawingProps, this);
     } else {
       const declarations = this.visit(ctx);
-      const paint = processPaint(
-        ctx.Skia,
-        ctx.paint.copy(),
-        ctx.opacity,
-        drawingProps,
-        declarations
-      );
+      const { paint } = ctx;
       [paint, ...declarations.filter(isPaint)].forEach((currentPaint) => {
         this.onDraw({ ...ctx, paint: currentPaint }, drawingProps, this);
       });
