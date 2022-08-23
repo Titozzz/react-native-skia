@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import React, { useEffect, useState } from "react";
 import type { SkPaint, SkRect } from "@shopify/react-native-skia";
 import {
+  CircleNode,
+  center,
+  Circle,
   useFont,
   FilterMode,
   Canvas,
@@ -21,27 +24,18 @@ const n = 99;
 
 export const FreezeExample = () => {
   const font = useFont(require("../../assets/SF-Mono-Semibold.otf"), 32);
-  const [color, setColor] = useState("black");
   const clock = useClockValue();
   const transform = useComputedValue(
     () => [{ translateY: 100 }, { rotate: (Math.PI * clock.current) / 4000 }],
     [clock]
   );
-  useEffect(() => {
-    const h = setInterval(() => {
-      setColor("#" + (Math.random().toString(16) + "00000").slice(2, 8));
-    }, 10000);
-    return () => clearInterval(h);
-  }, []);
   if (font === null) {
     return null;
   }
   return (
     <Canvas style={{ flex: 1, margin: 50 }} debug>
       <Group origin={{ x: size / 2, y: size / 2 }} transform={transform}>
-        <Freeze key={color} rect={rect(0, 0, 200, 200)}>
-          <Checkerboard color={color} />
-        </Freeze>
+        <Checkerboard color={"black"} />
       </Group>
       {font && <Text x={20} y={size + 100} text={`n = ${n}`} font={font} />}
     </Canvas>
@@ -50,18 +44,25 @@ export const FreezeExample = () => {
 
 const Checkerboard = ({ color }: { color: string }) => {
   // draw a n * n checkerboard
+
   return (
     <>
-      {[...Array(n * n)].map((_, i) => (
-        <Rect
-          key={i}
-          x={((i % n) * size) / n}
-          y={(Math.floor(i / n) * size) / n}
-          width={size / n}
-          height={size / n}
-          color={i % 2 ? color : "#ddd"}
-        />
-      ))}
+      {[...Array(n * n)].map((_, i) => {
+        const rct = rect(
+          ((i % n) * size) / n,
+          (Math.floor(i / n) * size) / n,
+          size / n,
+          size / n
+        );
+        return (
+          <Circle
+            key={i}
+            c={center(rct)}
+            r={size / n / 2}
+            color={i % 2 === 0 ? color : "white"}
+          />
+        );
+      })}
     </>
   );
 };

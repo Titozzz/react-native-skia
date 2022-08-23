@@ -116,3 +116,7 @@ export const processPaint = (
   }
   return paint;
 };
+
+export const concatPaint = (src: SkPaint, dst: SkPaint) => {
+  src.setColor(dst.getColor());
+};

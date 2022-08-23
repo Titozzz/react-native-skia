@@ -1,36 +1,37 @@
+import type { RefObject } from "react";
 import React from "react";
 
-import { createDrawing, DrawingNode, isDeclarationNode } from "../nodes";
+import type { SkPaint } from "../../skia";
+import { createDrawing } from "../nodes";
+import { concatPaint } from "../processors";
 import type { AnimatedProps, CustomPaintProps } from "../processors";
-import { processPaint } from "../processors/Paint";
 
-export type PaintNodeProps = CustomPaintProps;
+import { Paint, usePaintRef } from "./Paint";
+
+export type PaintNodeProps = { paint: RefObject<SkPaint> };
 
 const onDraw = createDrawing<PaintNodeProps>((ctx, props, node) => {
-  const { opacity } = ctx;
-  const declarations = node.children
-    .filter(isDeclarationNode)
-    .map((child) => child.draw(ctx));
-  const drawings = node.children.filter(
-    (child) => child instanceof DrawingNode
-  );
-  const paint = processPaint(
-    ctx.Skia,
-    ctx.paint.copy(),
-    opacity,
-    props,
-    declarations
-  );
-  node.visit(
-    {
-      ...ctx,
-      paint,
-      opacity: props.opacity ? props.opacity * opacity : opacity,
-    },
-    drawings
-  );
+  const paint = props.paint.current ? ctx.paint.copy() : ctx.paint;
+  if (props.paint.current) {
+    concatPaint(paint, props.paint.current);
+  }
+  node.visit({
+    ...ctx,
+    paint,
+  });
 });
 
-export const PaintNode = (props: AnimatedProps<PaintNodeProps>) => {
-  return <skDrawing onDraw={onDraw} {...props} skipProcessing />;
+export const PaintNode = ({
+  children,
+  ...props
+}: AnimatedProps<CustomPaintProps>) => {
+  const paint = usePaintRef();
+  return (
+    <>
+      <Paint ref={paint} {...props}>
+        {children}
+      </Paint>
+      <skDrawing onDraw={onDraw} {...{ paint }} skipProcessing />
+    </>
+  );
 };
