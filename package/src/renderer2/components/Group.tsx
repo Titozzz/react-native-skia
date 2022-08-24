@@ -10,14 +10,14 @@ import type {
   StrokeJoin,
   Transforms2d,
   Vector,
-  BlendMode,
 } from "../../skia/types";
-import { processTransform } from "../../skia/types";
+import { processTransform, BlendMode } from "../../skia/types";
 import { useComputedValue } from "../../values";
 
 import type { AnimatedProps } from "./Animations";
 import { materialize } from "./Animations";
 import type { SkEnum } from "./Enum";
+import { enumKey } from "./Enum";
 
 export const localMatrix = (
   m: SkMatrix,
@@ -95,16 +95,14 @@ export const Group = ({ children, ...props }: AnimatedProps<GroupProps>) => {
     return processCanvasTransform({ transform, origin, matrix });
   }, [props.transform, props.matrix, props.origin]);
   const paint = useComputedValue(() => {
-    const color = materialize(props.color);
-    const blendMode = materialize(props.blendMode);
+    const cl = materialize(props.color);
+    const color = cl ? Skia.Color(cl) : undefined;
+    const bm = materialize(props.blendMode);
+    const blendMode = bm ? BlendMode[enumKey(bm)] : undefined;
     return {
       color,
       blendMode,
     };
   }, [props.color, props.blendMode]);
-  return (
-    <skGroup m3={m3} paint={paint}>
-      {children}
-    </skGroup>
-  );
+  return <skGroup m3={m3} paint={paint} {...{ children }} />;
 };

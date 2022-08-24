@@ -45,6 +45,7 @@ export type AnimatedProp<T, P = unknown> =
   | T
   | SkiaValue<T>
   | SkiaSelector<T, P>;
+
 export type AnimatedProps<T> = {
   [K in keyof T]: AnimatedProp<T[K]>;
 };

@@ -2,6 +2,7 @@
 import type { HostConfig } from "react-reconciler";
 
 import { exhaustiveCheck, shallowEq } from "../renderer/typeddash";
+import type { SkiaValue } from "../values";
 
 import { GroupNode } from "./nodes/GroupNode";
 import {
@@ -10,8 +11,17 @@ import {
   CircleNode,
   FillNode,
   RectNode,
+  PaintNode,
 } from "./nodes";
-import type { CircleNodeProps, GroupNodeProps, RootNode, Node } from "./nodes";
+import type {
+  CircleNodeProps,
+  GroupNodeProps,
+  RootNode,
+  Node,
+  UnknownProps,
+  RectNodeProps,
+  PaintNodeProps,
+} from "./nodes";
 
 const DEBUG = false;
 export const debug = (...args: Parameters<typeof console.log>) => {
@@ -25,13 +35,16 @@ class InvalidChildren extends Error {
     super(`${type} doesn't have children (${msg})`);
   }
 }
+export type AnimateProps<T> = {
+  [K in keyof T]: SkiaValue<T[K]>;
+};
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      skGroup: GroupNodeProps;
-      skCircle: CircleNodeProps;
+      skGroup: AnimateProps<GroupNodeProps>;
+      skCircle: AnimateProps<CircleNodeProps>;
     }
   }
 }
@@ -39,9 +52,7 @@ declare global {
 type Container = RootNode;
 type Instance = Node;
 
-// should it be Record<string, any>?
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Props = any;
+type Props = UnknownProps;
 type TextInstance = Node;
 type SuspenseInstance = Instance;
 type HydratableInstance = Instance;
@@ -109,13 +120,15 @@ const insertBefore = (parent: Node, child: Node, before: Node) => {
 const createNode = (_container: Container, type: NodeType, props: Props) => {
   switch (type) {
     case NodeType.Circle:
-      return new CircleNode(props);
+      return new CircleNode(props as CircleNodeProps);
     case NodeType.Fill:
       return new FillNode();
     case NodeType.Rect:
-      return new RectNode(props);
+      return new RectNode(props as RectNodeProps);
     case NodeType.Group:
-      return new GroupNode(props);
+      return new GroupNode(props as GroupNodeProps);
+    case NodeType.Paint:
+      return new PaintNode(props as PaintNodeProps);
     case NodeType.Root:
       throw new Error(`Unsupported Skia Node: ${type}`);
     default:

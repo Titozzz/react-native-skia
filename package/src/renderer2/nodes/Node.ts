@@ -1,8 +1,12 @@
 import type { DrawingContext } from "./DrawingContext";
 import type { NodeType } from "./NodeType";
 
-export interface Node {
-  type: NodeType;
+export type UnknownProps = unknown;
+
+export abstract class Node<P = UnknownProps> {
+  abstract type: NodeType;
+
+  constructor(public props: P) {}
 }
 
 export interface DeclarationNode extends Node {

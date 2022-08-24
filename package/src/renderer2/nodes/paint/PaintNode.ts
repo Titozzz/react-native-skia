@@ -1,27 +1,31 @@
 import type { SkPaint, SkColor, BlendMode } from "../../../skia/types";
+import { Node } from "../Node";
+import { NodeType } from "../NodeType";
+
+export const concatPaint = (
+  parentPaint: SkPaint,
+  paintProps: PaintNodeProps
+) => {
+  const { color, blendMode } = paintProps;
+  const paint = parentPaint.copy();
+  if (color !== undefined) {
+    paint.setColor(color);
+  }
+  if (blendMode !== undefined) {
+    paint.setBlendMode(blendMode);
+  }
+  return paint;
+};
 
 export interface PaintNodeProps {
   color?: SkColor;
   blendMode?: BlendMode;
 }
 
-export class PaintNode {
-  color?: SkColor;
-  blendMode?: BlendMode;
+export class PaintNode extends Node<PaintNodeProps> {
+  type = NodeType.Paint;
 
-  constructor({ color, blendMode }: PaintNodeProps) {
-    this.color = color;
-    this.blendMode = blendMode;
-  }
-
-  concat(parentPaint: SkPaint) {
-    const paint = parentPaint.copy();
-    if (this.color !== undefined) {
-      paint.setColor(this.color);
-    }
-    if (this.blendMode !== undefined) {
-      paint.setBlendMode(this.blendMode);
-    }
-    return paint;
+  constructor(props: PaintNodeProps) {
+    super(props);
   }
 }

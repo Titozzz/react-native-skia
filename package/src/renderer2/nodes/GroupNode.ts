@@ -2,37 +2,42 @@ import type { SkMatrix } from "../../skia/types";
 
 import type { DrawingContext } from "./DrawingContext";
 import type { DrawingNode, DeclarationNode } from "./Node";
+import { Node } from "./Node";
 import { NodeType } from "./NodeType";
-import type { PaintNode } from "./paint";
+import type { PaintNodeProps } from "./paint/PaintNode";
+import { concatPaint } from "./paint/PaintNode";
 
 export interface GroupNodeProps {
   m3?: SkMatrix;
-  paint?: PaintNode;
+  paint?: PaintNodeProps;
 }
 
-export class GroupNode implements DrawingNode, DeclarationNode {
+export class GroupNode
+  extends Node<GroupNodeProps>
+  implements DrawingNode, DeclarationNode
+{
   type = NodeType.Group;
 
   children: DrawingNode[] = [];
-  m3?: SkMatrix;
-  paint?: PaintNode;
 
-  constructor(m3?: SkMatrix, paint?: PaintNode) {
-    this.m3 = m3;
-    this.paint = paint;
+  constructor(props: GroupNodeProps) {
+    super(props);
   }
 
   draw(ctx: DrawingContext) {
     const { canvas, paint } = ctx;
-    if (this.m3) {
-      canvas.concat(this.m3);
+    const { m3, paint: thisPaint } = this.props;
+    if (m3) {
+      canvas.concat(m3);
     }
     const childCtx =
-      paint && this.paint ? { ...ctx, paint: this.paint.concat(paint) } : ctx;
+      paint && thisPaint
+        ? { ...ctx, paint: concatPaint(paint, thisPaint) }
+        : ctx;
     for (const child of this.children) {
       child.draw(childCtx);
     }
-    if (this.m3) {
+    if (m3) {
       canvas.restore();
     }
   }

@@ -1,3 +1,4 @@
+import { Node } from "../Node";
 import type { DrawingNode } from "../Node";
 import type { DrawingContext } from "../DrawingContext";
 import type { Vector } from "../../../skia/types";
@@ -8,17 +9,15 @@ export interface CircleNodeProps {
   r: number;
 }
 
-export class CircleNode implements DrawingNode {
+export class CircleNode extends Node<CircleNodeProps> implements DrawingNode {
   type = NodeType.Circle;
-  c: Vector;
-  r: number;
 
-  constructor({ c, r }: CircleNodeProps) {
-    this.c = c;
-    this.r = r;
+  constructor(props: CircleNodeProps) {
+    super(props);
   }
 
   draw({ canvas, paint }: DrawingContext) {
-    canvas.drawCircle(this.c.x, this.c.y, this.r, paint);
+    const { c, r } = this.props;
+    canvas.drawCircle(c.x, c.y, r, paint);
   }
 }
