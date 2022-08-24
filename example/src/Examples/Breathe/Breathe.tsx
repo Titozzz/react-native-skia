@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { StyleSheet, useWindowDimensions, Dimensions } from "react-native";
+import React from "react";
+import { StyleSheet, Dimensions } from "react-native";
 import type { SkiaValue } from "@shopify/react-native-skia";
 import {
   useComputedValue,
@@ -62,7 +62,11 @@ export const Breathe = () => {
   return (
     <Canvas style={styles.container} mode="continuous" debug>
       <Fill color="rgb(36,43,56)" />
-      <Circle c={center} r={R} color="red" />
+      <Group origin={center} transform={transform} blendMode="screen">
+        {new Array(6).fill(0).map((_, index) => {
+          return <Ring key={index} index={index} progress={progress} />;
+        })}
+      </Group>
     </Canvas>
   );
 };
@@ -74,10 +78,6 @@ const styles = StyleSheet.create({
 });
 
 /*
-   <Group origin={center} transform={transform} blendMode="screen">
       <BlurMask style="solid" blur={40} />
-        {new Array(6).fill(0).map((_, index) => {
-          return <Ring key={index} index={index} progress={progress} />;
-        })}
-      </Group>
+      
       */

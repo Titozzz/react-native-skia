@@ -30,6 +30,7 @@ export class GroupNode
     const { m3 } = this.props;
     const thisPaint = materialize(this.props.paint);
     if (m3) {
+      canvas.save();
       canvas.concat(materialize(m3));
     }
     const childCtx =
