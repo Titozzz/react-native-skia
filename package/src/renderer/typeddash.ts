@@ -1,7 +1,10 @@
 export const mapKeys = <T>(obj: T) => Object.keys(obj) as (keyof T)[];
 
-export const exhaustiveCheck = (a: never): never => {
-  throw new Error(`Unexhaustive handling for ${a}`);
+export const exhaustiveCheck = (
+  a: never,
+  msg = "Unexhaustive handling for"
+): never => {
+  throw new Error(`${msg} ${a}`);
 };
 
 // Shallow eq on props (without children)
