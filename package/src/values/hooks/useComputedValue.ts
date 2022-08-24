@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 
+import { isValue } from "../../animation/Animations";
 import { ValueApi } from "../api";
-import { isValue } from "../../renderer/processors/Animations";
 
 /**
  * Creates a new computed value - a value that will calculate its value depending

@@ -1,5 +1,5 @@
 import type { SkPath } from "../../skia/types";
-import { exhaustiveCheck } from "../../renderer/typeddash";
+import { exhaustiveCheck } from "../../typeddash";
 
 import type { ExtrapolationType } from "./interpolate";
 import { validateInterpolationOptions, Extrapolate } from "./interpolate";

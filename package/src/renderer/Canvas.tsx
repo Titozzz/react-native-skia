@@ -23,8 +23,8 @@ import { Skia } from "../skia/Skia";
 
 import { debug as hostDebug, skHostConfig } from "./HostConfig";
 // import { debugTree } from "./nodes";
-import { Container } from "./nodes";
 import { DependencyManager } from "./DependencyManager";
+import { RootNode } from "./nodes";
 import { CanvasProvider } from "./useCanvas";
 
 export const skiaReconciler = ReactReconciler(skHostConfig);
@@ -35,7 +35,7 @@ skiaReconciler.injectIntoDevTools({
   rendererPackageName: "react-native-skia",
 });
 
-const render = (element: ReactNode, root: OpaqueRoot, container: Container) => {
+const render = (element: ReactNode, root: OpaqueRoot, container: RootNode) => {
   skiaReconciler.updateContainer(element, root, null, () => {
     hostDebug("updateContainer");
 
@@ -61,7 +61,7 @@ export const Canvas = forwardRef<SkiaView, CanvasProps>(
     const redraw = useCallback(() => setTick((t) => t + 1), []);
 
     const container = useMemo(
-      () => new Container(new DependencyManager(ref), redraw),
+      () => new RootNode(new DependencyManager(ref), redraw),
       [redraw, ref]
     );
 

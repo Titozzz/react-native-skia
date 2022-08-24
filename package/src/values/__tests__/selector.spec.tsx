@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Fill } from "../../renderer/components";
+import { Fill } from "../../renderer";
 import { mountCanvas } from "../../renderer/__tests__/setup";
 import { processResult } from "../../__tests__/setup";
 import { Selector } from "../selector";

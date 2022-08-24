@@ -1,9 +1,28 @@
 /*global NodeJS*/
 import type { HostConfig } from "react-reconciler";
 
-import type { Node, Container, DeclarationProps, DrawingProps } from "./nodes";
-import { DeclarationNode, DrawingNode, NodeType } from "./nodes";
-import { exhaustiveCheck, shallowEq } from "./typeddash";
+import type { SkiaValue } from "../values";
+import { exhaustiveCheck, shallowEq } from "../typeddash";
+
+import { GroupNode } from "./nodes/GroupNode";
+import {
+  NodeType,
+  isDeclarationNode,
+  CircleNode,
+  FillNode,
+  RectNode,
+  PaintNode,
+} from "./nodes";
+import type {
+  CircleNodeProps,
+  GroupNodeProps,
+  RootNode,
+  Node,
+  UnknownProps,
+  RectNodeProps,
+  PaintNodeProps,
+  FillNodeProps,
+} from "./nodes";
 
 const DEBUG = false;
 export const debug = (...args: Parameters<typeof console.log>) => {
@@ -12,21 +31,30 @@ export const debug = (...args: Parameters<typeof console.log>) => {
   }
 };
 
+class InvalidChildren extends Error {
+  constructor(type: NodeType, msg: string) {
+    super(`${type} doesn't have children (${msg})`);
+  }
+}
+export type AnimateProps<T> = {
+  [K in keyof T]: SkiaValue<T[K]>;
+};
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      skDeclaration: DeclarationProps<any>;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      skDrawing: DrawingProps<any>;
+      skGroup: AnimateProps<GroupNodeProps>;
+      skCircle: AnimateProps<CircleNodeProps>;
+      skFill: AnimateProps<FillNodeProps>;
     }
   }
 }
 
+type Container = RootNode;
 type Instance = Node;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Props = any;
+
+type Props = UnknownProps;
 type TextInstance = Node;
 type SuspenseInstance = Instance;
 type HydratableInstance = Instance;
@@ -53,83 +81,62 @@ type SkiaHostConfig = HostConfig<
   NoTimeout
 >;
 
-const allChildrenAreMemoized = (node: Instance) => {
-  if (!node.memoizable) {
-    return false;
-  }
-  for (const child of node.children) {
-    if (!child.memoized) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const bustBranchMemoization = (parent: Node) => {
-  if (parent.memoizable) {
-    let ancestor: Node | undefined = parent;
-    while (ancestor) {
-      ancestor.memoized = null;
-      ancestor = ancestor.parent;
-    }
-  }
-};
-
-const bustBranchMemoizable = (parent: Node) => {
-  if (parent.memoizable) {
-    let ancestor: Node | undefined = parent;
-    while (ancestor) {
-      ancestor.memoizable = false;
-      ancestor = ancestor.parent;
-    }
-  }
-};
-
 const appendNode = (parent: Node, child: Node) => {
-  child.parent = parent;
-  bustBranchMemoization(parent);
-  if (!child.memoizable) {
-    bustBranchMemoizable(parent);
+  if (isDeclarationNode(parent)) {
+    parent.children.push(child);
+  } else {
+    throw new InvalidChildren(parent.type, `trying to append ${child.type}`);
   }
-  if (!parent.memoizable) {
-    child.memoizable = false;
-  }
-  parent.children.push(child);
 };
 
 const removeNode = (parent: Node, child: Node) => {
-  bustBranchMemoization(parent);
-  const index = parent.children.indexOf(child);
-  parent.children.splice(index, 1);
-  child.depMgr.unSubscribeNode(child);
-  // unsubscribe to all children as well
-  for (const c of child.children) {
-    removeNode(child, c);
+  if (isDeclarationNode(parent)) {
+    const index = parent.children.indexOf(child);
+    parent.children.splice(index, 1);
+    // TODO: PUT THIS BACK!!!!!!
+    //child.depMgr.unSubscribeNode(child);
+    // unsubscribe to all children as well
+    if (isDeclarationNode(child)) {
+      for (const c of child.children) {
+        removeNode(child, c);
+      }
+    }
+  } else {
+    throw new InvalidChildren(parent.type, `trying to remove ${child.type}`);
   }
 };
 
 const insertBefore = (parent: Node, child: Node, before: Node) => {
-  bustBranchMemoization(parent);
-  const index = parent.children.indexOf(child);
-  if (index !== -1) {
-    parent.children.splice(index, 1);
+  if (isDeclarationNode(parent)) {
+    const index = parent.children.indexOf(child);
+    if (index !== -1) {
+      parent.children.splice(index, 1);
+    }
+    const beforeIndex = parent.children.indexOf(before);
+    parent.children.splice(beforeIndex, 0, child);
+  } else {
+    throw new InvalidChildren(parent.type, `trying to append ${child.type}`);
   }
-  const beforeIndex = parent.children.indexOf(before);
-  parent.children.splice(beforeIndex, 0, child);
 };
 
-const createNode = (container: Container, type: NodeType, props: Props) => {
+const createNode = (_container: Container, type: NodeType, props: Props) => {
   switch (type) {
-    case NodeType.Drawing:
-      const { onDraw, skipProcessing, ...p1 } = props;
-      return new DrawingNode(container.depMgr, onDraw, skipProcessing, p1);
-    case NodeType.Declaration:
-      const { onDeclare, ...p2 } = props;
-      return new DeclarationNode(container.depMgr, onDeclare, p2);
+    case NodeType.Circle:
+      return new CircleNode(props as CircleNodeProps);
+    case NodeType.Fill:
+      return new FillNode();
+    case NodeType.Rect:
+      return new RectNode(props as RectNodeProps);
+    case NodeType.Group:
+      return new GroupNode(props as GroupNodeProps);
+    case NodeType.Paint:
+      return new PaintNode(props as PaintNodeProps);
+    case NodeType.Root:
+      throw new Error(`Unsupported Skia Node: ${type}`);
     default:
       // TODO: here we need to throw a nice error message
       // This is the error that will show up when the user uses nodes not supported by Skia (View, Audio, etc)
-      return exhaustiveCheck(type);
+      return exhaustiveCheck(type, "Unsupported Skia Node:");
   }
 };
 
@@ -236,7 +243,7 @@ export const skHostConfig: SkiaHostConfig = {
   },
 
   prepareUpdate: (
-    instance,
+    _instance,
     type,
     oldProps,
     newProps,
@@ -245,7 +252,7 @@ export const skHostConfig: SkiaHostConfig = {
   ) => {
     debug("prepareUpdate");
     const propsAreEqual = shallowEq(oldProps, newProps);
-    if (propsAreEqual && !instance.memoizable) {
+    if (propsAreEqual) {
       return null;
     }
     debug("update ", type);
@@ -256,15 +263,11 @@ export const skHostConfig: SkiaHostConfig = {
     instance,
     _updatePayload,
     type,
-    prevProps,
+    _prevProps,
     nextProps,
     _internalHandle
   ) {
     debug("commitUpdate: ", type);
-    if (shallowEq(prevProps, nextProps) && allChildrenAreMemoized(instance)) {
-      return;
-    }
-    bustBranchMemoization(instance);
     instance.props = nextProps;
   },
 

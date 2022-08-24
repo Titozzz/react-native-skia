@@ -16,7 +16,7 @@ import * as decayFunctions from "../animation/decay";
 import * as interpolateFn from "../animation/functions/interpolate";
 import * as interpolatePathFn from "../animation/functions/interpolatePaths";
 import * as interpolateVectorFn from "../animation/functions/interpolateVector";
-import { ShaderLib } from "../renderer/components/shaders/ShaderLib";
+import { ShaderLib } from "../renderer_old/components/shaders/ShaderLib";
 
 class Stub {
   constructor() {
