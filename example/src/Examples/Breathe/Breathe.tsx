@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
+import { StyleSheet, useWindowDimensions, Dimensions } from "react-native";
 import type { SkiaValue } from "@shopify/react-native-skia";
 import {
   useComputedValue,
   useLoop,
-  BlurMask,
+  // BlurMask,
   vec,
   Canvas,
   Circle,
@@ -17,6 +17,9 @@ import {
 
 const c1 = "#61bea2";
 const c2 = "#529ca0";
+const { width, height } = Dimensions.get("window");
+const center = vec(width / 2, height / 2);
+const R = width / 4;
 
 interface RingProps {
   index: number;
@@ -24,13 +27,6 @@ interface RingProps {
 }
 
 const Ring = ({ index, progress }: RingProps) => {
-  const { width, height } = useWindowDimensions();
-  const R = width / 4;
-  const center = useMemo(
-    () => vec(width / 2, height / 2 - 64),
-    [height, width]
-  );
-
   const theta = (index * (2 * Math.PI)) / 6;
   const transform = useComputedValue(() => {
     const { x, y } = polar2Canvas(
@@ -42,19 +38,17 @@ const Ring = ({ index, progress }: RingProps) => {
   }, [progress]);
 
   return (
-    <Group origin={center} transform={transform}>
-      <Circle c={center} r={R} color={index % 2 ? c1 : c2} />
-    </Group>
+    <Circle
+      c={center}
+      r={R}
+      color={index % 2 ? c1 : c2}
+      origin={center}
+      transform={transform}
+    />
   );
 };
 
 export const Breathe = () => {
-  const { width, height } = useWindowDimensions();
-  const center = useMemo(
-    () => vec(width / 2, height / 2 - 64),
-    [height, width]
-  );
-
   const progress = useLoop({
     duration: 3000,
     easing: Easing.inOut(Easing.ease),
@@ -66,14 +60,9 @@ export const Breathe = () => {
   );
 
   return (
-    <Canvas style={styles.container} debug>
+    <Canvas style={styles.container} mode="continuous" debug>
       <Fill color="rgb(36,43,56)" />
-      <Group origin={center} transform={transform} blendMode="screen">
-        <BlurMask style="solid" blur={40} />
-        {new Array(6).fill(0).map((_, index) => {
-          return <Ring key={index} index={index} progress={progress} />;
-        })}
-      </Group>
+      <Circle c={center} r={R} color="red" />
     </Canvas>
   );
 };
@@ -83,3 +72,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+/*
+   <Group origin={center} transform={transform} blendMode="screen">
+      <BlurMask style="solid" blur={40} />
+        {new Array(6).fill(0).map((_, index) => {
+          return <Ring key={index} index={index} progress={progress} />;
+        })}
+      </Group>
+      */
