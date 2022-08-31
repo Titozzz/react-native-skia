@@ -3,9 +3,12 @@ import React, { useContext } from "react";
 import type { Skia } from "../skia/types";
 import type { SkiaValue } from "../values/types";
 
+import type { DependencyManager } from "./DependencyManager";
+
 interface CanvasContext {
   Skia: Skia;
   size: SkiaValue<{ width: number; height: number }>;
+  depMgr: DependencyManager;
 }
 
 const CanvasContext = React.createContext<CanvasContext | null>(null);
@@ -19,3 +22,5 @@ export const useCanvas = () => {
   }
   return ctx;
 };
+
+export const useDepMgr = () => useCanvas().depMgr;

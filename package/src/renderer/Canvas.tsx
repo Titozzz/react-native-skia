@@ -58,7 +58,6 @@ export interface CanvasProps extends ComponentProps<typeof SkiaView> {
 export const Canvas = forwardRef<SkiaView, CanvasProps>(
   ({ children, style, debug, mode, onTouch }, forwardedRef) => {
     const size = useValue({ width: 0, height: 0 });
-    const canvasCtx = useMemo(() => ({ Skia, size }), [size]);
     const innerRef = useCanvasRef();
     const ref = useCombinedRefs(forwardedRef, innerRef);
     const [tick, setTick] = useState(0);
@@ -79,6 +78,7 @@ export const Canvas = forwardRef<SkiaView, CanvasProps>(
       [registerValues]
     );
 
+    const canvasCtx = useMemo(() => ({ Skia, size, depMgr }), [size, depMgr]);
     const container = useMemo(() => new Container(redraw), [redraw]);
 
     const root = useMemo(
