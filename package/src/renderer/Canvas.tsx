@@ -36,10 +36,14 @@ skiaReconciler.injectIntoDevTools({
   rendererPackageName: "react-native-skia",
 });
 
-const render = (element: ReactNode, root: OpaqueRoot, container: Container) => {
+const render = (
+  element: ReactNode,
+  root: OpaqueRoot,
+  depMgr: DependencyManager
+) => {
   skiaReconciler.updateContainer(element, root, null, () => {
     hostDebug("updateContainer");
-    container.depMgr.update();
+    depMgr.update();
   });
 };
 
@@ -70,10 +74,12 @@ export const Canvas = forwardRef<SkiaView, CanvasProps>(
       [ref]
     );
 
-    const container = useMemo(
-      () => new Container(new DependencyManager(registerValues), redraw),
-      [redraw, registerValues]
+    const depMgr = useMemo(
+      () => new DependencyManager(registerValues),
+      [registerValues]
     );
+
+    const container = useMemo(() => new Container(redraw), [redraw]);
 
     const root = useMemo(
       () => skiaReconciler.createContainer(container, 0, false, null),
@@ -84,9 +90,9 @@ export const Canvas = forwardRef<SkiaView, CanvasProps>(
       render(
         <CanvasProvider value={canvasCtx}>{children}</CanvasProvider>,
         root,
-        container
+        depMgr
       );
-    }, [children, root, redraw, container, canvasCtx]);
+    }, [children, root, redraw, depMgr, canvasCtx]);
 
     const paint = useMemo(() => Skia.Paint(), []);
 
@@ -124,10 +130,10 @@ export const Canvas = forwardRef<SkiaView, CanvasProps>(
     useEffect(() => {
       return () => {
         skiaReconciler.updateContainer(null, root, null, () => {
-          container.depMgr.remove();
+          depMgr.remove();
         });
       };
-    }, [container, root]);
+    }, [depMgr, root]);
 
     return (
       <SkiaView

@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import type { DrawingContext } from "../DrawingContext";
 import type { AnimatedProps } from "../processors";
 import { isAnimated } from "../processors";
-import type { DependencyManager } from "../DependencyManager";
 import type { SkJSIInstance } from "../../skia/types";
 
 import { Node } from "./Node";
@@ -38,12 +37,8 @@ export interface DeclarationProps<P> {
 export class DeclarationNode<P> extends Node<P> {
   private onDeclare: DeclarationCallback<P>;
 
-  constructor(
-    depMgr: DependencyManager,
-    onDeclare: DeclarationCallback<P>,
-    props: AnimatedProps<P>
-  ) {
-    super(depMgr, props);
+  constructor(onDeclare: DeclarationCallback<P>, props: AnimatedProps<P>) {
+    super(props);
     super.memoizable = !isAnimated(props);
     this.onDeclare = onDeclare;
   }

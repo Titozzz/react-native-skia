@@ -1,5 +1,4 @@
 import type { SkJSIInstance } from "../../skia/types";
-import type { DependencyManager } from "../DependencyManager";
 import type { DrawingContext } from "../DrawingContext";
 import type { AnimatedProps } from "../processors";
 
@@ -17,24 +16,15 @@ export abstract class Node<P = unknown> {
   memoizable = false;
   memoized: DeclarationResult | null = null;
   parent?: Node;
-  depMgr: DependencyManager;
 
-  constructor(depMgr: DependencyManager, props: AnimatedProps<P>) {
-    this.depMgr = depMgr;
-    this.updateSubscriptionNode(props);
+  constructor(props: AnimatedProps<P>) {
+    this.resolvedProps = props as P;
   }
 
   abstract draw(ctx: DrawingContext): void | DeclarationResult;
 
-  private updateSubscriptionNode(props: AnimatedProps<P>) {
-    // This cast is ok because we understand that the dependency manager will setup the initial props
-    this.resolvedProps = props as P;
-    this.depMgr.subscribeProps(props);
-  }
-
   set props(props: AnimatedProps<P>) {
-    this.depMgr.unsubscribeProps(this.props);
-    this.updateSubscriptionNode(props);
+    this.resolvedProps = props as P;
   }
 
   get props(): P {

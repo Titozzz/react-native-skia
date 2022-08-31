@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import type { DrawingContext } from "../DrawingContext";
 import type { AnimatedProps } from "../processors/Animations/Animations";
 import { isPaint } from "../../skia/types";
-import type { DependencyManager } from "../DependencyManager";
 import { processPaint } from "../processors";
 
 import { Node } from "./Node";
@@ -35,12 +34,11 @@ export class DrawingNode<P> extends Node<P> {
   skipProcessing: boolean;
 
   constructor(
-    depMgr: DependencyManager,
     onDraw: DrawingCallback<P>,
     skipProcessing: boolean,
     props: AnimatedProps<P>
   ) {
-    super(depMgr, props);
+    super(props);
     this.onDraw = onDraw;
     this.skipProcessing = skipProcessing;
   }

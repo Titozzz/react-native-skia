@@ -6,6 +6,17 @@ import { Selector } from "../../values";
 import { RNSkValue } from "../../values/web/RNSkValue";
 
 class TestNode<P> extends Node<P> {
+  constructor(public mgr: DependencyManager, props: P) {
+    super(props);
+    this.mgr.subscribeProps(props);
+  }
+
+  set props(props: P) {
+    this.mgr.unsubscribeProps(this.props);
+    super.props = props;
+    this.mgr.subscribeProps(props);
+  }
+
   draw(_ctx: DrawingContext): void | (SkJSIInstance<string> | null) {}
 }
 

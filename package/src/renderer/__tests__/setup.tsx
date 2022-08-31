@@ -114,7 +114,7 @@ export const mountCanvas = (element: ReactNode) => {
   };
 
   const depMgr = new DependencyManager(registerValues);
-  const container = new Container(depMgr, redraw);
+  const container = new Container(redraw);
   skiaReconciler.createContainer(container, 0, false, null);
   const root = skiaReconciler.createContainer(container, 0, false, null);
   skiaReconciler.updateContainer(
@@ -126,7 +126,7 @@ export const mountCanvas = (element: ReactNode) => {
     root,
     null,
     () => {
-      container.depMgr.update();
+      depMgr.update();
     }
   );
   const ctx: DrawingContext = {
